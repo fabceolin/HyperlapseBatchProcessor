@@ -1,9 +1,18 @@
-﻿using Microsoft.Research.Hyperlapse.Desktop;
+﻿using Microsoft.Research.Hyperlapse;
+using Microsoft.Research.Hyperlapse.Desktop;
+using Microsoft.Research.VisionTools.Toolkit.Desktop.Telemetry;
 using Microsoft.Research.VisionTools.Toolkit.Desktop.Native;
+using Microsoft.Research.VisionTools.Toolkit.Desktop;
+using Microsoft.Research.VisionTools.Toolkit;
+
+
+
+
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
+
 
 namespace HyperlapseBatchProcessor
 {
@@ -14,7 +23,7 @@ namespace HyperlapseBatchProcessor
         private static VideoReader videoReader = new VideoReader();
         private static CalibrationProvider calibrationProvider = new CalibrationProvider();
         private static CalibrationMatcher calibrationMatcher = new CalibrationMatcher(calibrationProvider);
-        private static VideoBitrateEstimator videoBitrateEstimator = new VideoBitrateEstimator();
+        private static Microsoft.Research.Hyperlapse.VideoBitrateEstimator videoBitrateEstimator = new Microsoft.Research.Hyperlapse.VideoBitrateEstimator();
 
         public static void ProcessFiles(FileInfo[] files, int speedupFactor, Rational outputFramesPerSecond)
         {
@@ -26,7 +35,8 @@ namespace HyperlapseBatchProcessor
             engine.ProcessingFailed += OnEngineProcessingFailed;
             engine.ProcessingFinished += OnEngineProcessingFinished;
             engine.ProgressChanged += OnEngineProgressChanged;
-            engine.TrialStatusChanged += OnEngineTrialStatusChanged;
+            engine.ActivationStatusChanged += OnEngineTrialStatusChanged;
+            
 
             foreach (var file in files)
             {
@@ -72,13 +82,15 @@ namespace HyperlapseBatchProcessor
                                                                                                    outputFramesPerSecond ?? videoInfo.FramesPerSecond);
 
             hyperlapseParameters.SpeedupFactor = speedupFactor;
-
+            hyperlapseParameters.CameraModel = 17;
+            
             hyperlapseParameters.VideoUri = new Uri(fileInput.FullName);
             hyperlapseParameters.VideoOutputFilePath = fileOutput.FullName;
             hyperlapseParameters.TempOutputDirectory = fileOutput.DirectoryName;
 
-            hyperlapseParameters.CreditLength = 0;
-            hyperlapseParameters.UseAdvancedSmoothing = false;
+            hyperlapseParameters.CreditLength = -1;
+            
+            hyperlapseParameters.UseAdvancedSmoothing = true;
             hyperlapseParameters.ForceSoftwareRendering = false;
             hyperlapseParameters.UseGeometryShaders = false;
             hyperlapseParameters.UseHardwareVideoEncoder = false; // some videos fail when this is on
